@@ -1,0 +1,3 @@
+
+void bsp_main() {
+}
