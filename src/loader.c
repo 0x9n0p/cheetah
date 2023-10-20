@@ -1,7 +1,11 @@
 #include "include/multiboot.h"
 
+extern void* far_jump_to_bootstrap;
+
 void main(const void *multiboot) {
     *((int *) 0xb8000) = 0x07690748;
+
+    ((void(*)())far_jump_to_bootstrap)();
 
     const multiboot_info_t *mb_info = multiboot;
     multiboot_uint32_t mb_flags = mb_info->flags;

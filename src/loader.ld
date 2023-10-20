@@ -18,7 +18,7 @@ SECTIONS {
         *(.data)
     }
 
-    .bss ALIGN (0x1000) :
+    .bss ALIGN (0x00100000) :
     {
         *(COMMON)
         *(.bss)

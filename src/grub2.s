@@ -1,4 +1,3 @@
-global loader
 extern main
 
 MAGIC_NUMBER equ 0x1BADB002
@@ -13,6 +12,7 @@ align 4
     dd FLAGS
     dd CHECKSUM
 
+global loader
 loader:
     mov esp, kernel_stack + KERNEL_STACK_SIZE
     mov ebp, esp
@@ -27,10 +27,19 @@ loader:
     push ebx
     call main
 
-.loop:
-    jmp .loop
+    jmp loop
+
+global far_jump_to_bootstrap
+far_jump_to_bootstrap:
+
+loop:
+    jmp loop
 
 section .bss
 align 4
 kernel_stack:
     resb KERNEL_STACK_SIZE
+
+global pml4_root
+align 8
+pml4_root:
