@@ -58,6 +58,9 @@ clear_screen:
 times 510-($-$$) db 0
 dw 0xAA55
 
+CODE_SEG equ CODE32 - GDT32
+DATA_SEG equ DATA32 - GDT32
+
 loader:
     cli
     lgdt [GDT32_PTR]
@@ -68,11 +71,11 @@ loader:
     mov cr0, eax
 
     ; 8 = 00001 (Index) 0 (TI) 00 (RPL)
-    jmp 8:protected_mode
+    jmp CODE_SEG:protected_mode
 
 [BITS 32]
 protected_mode:
-    mov ax, 0x10 ; Data segment is third entry
+    mov eax, DATA_SEG ; 16 -> Data segment is third entry
     mov ds, ax
     mov es, ax
     mov ss, ax

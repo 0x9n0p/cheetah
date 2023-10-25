@@ -1,6 +1,5 @@
 bootloader:
-	nasm -f bin -o build/bootloader.bin bootloader/bootloader.s
-	#nasm -f bin -o build/loader.bin bootloader/loader.s
+	nasm -f bin -o build/bootloader.bin src/bootloader.s
 
 debug: bootloader
 	qemu-system-x86_64 -m 1024 build/bootloader.bin -S -s &
