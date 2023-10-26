@@ -1,8 +1,0 @@
-{
-  "config": "environment",
-  "initrd": { "type": "tar", "gzip": true, "directory": "boot" },
-  "partitions": [
-    { "type": "boot", "size": 16 },
-    { "type": "ext2", "size": 128, "name": "Linux Exchange" }
-  ]
-}
