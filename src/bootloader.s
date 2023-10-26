@@ -81,11 +81,13 @@ protected_mode:
     mov ss, ax
     mov esp, 0x7C00
 
-    mov BYTE[0xb8000], 'P'
-    mov BYTE[0xb8001], 0xa
+    ; Load kernel at 0x100000
+    mov eax, 9 ; From sector n
+    mov ecx, 1 ; Sectors to read
+    mov edi, 0x100000
+    call ata_lba_read
 
-    hlt
-    jmp $
+    jmp 0x100000
 
 GDT32:
     ; The first entry must be null
@@ -117,4 +119,51 @@ IDT32_PTR:
       dw 0
       dw 0
 
-times 4096 db 0
+ata_lba_read:
+    mov ebx, eax
+    shr eax, 24
+    or eax, 0xE0
+    mov dx, 0x1F6
+    out dx, al
+
+    mov eax, ecx
+    mov dx, 0x1F2
+    out dx, al
+
+    mov eax, ebx
+    mov dx, 0x1F3
+    out dx, al
+
+    mov dx, 0x1F4
+    mov eax, ebx
+    shr eax, 8
+    out dx, al
+
+    mov dx, 0x1F5
+    mov eax, ebx
+    shr eax, 16
+    out dx, al
+
+    mov dx, 0x1f7
+    mov al, 0x20
+    out dx, al
+
+.ata_next_sector:
+    push ecx
+
+.ata_try_again:
+    mov dx, 0x1f7
+    in al, dx
+    test al, 8
+    jz .ata_try_again
+
+    mov ecx, 256
+    mov dx, 0x1F0
+    rep insw
+    pop ecx
+    loop .ata_next_sector
+    ret
+
+times 4096-($-loader) db 0
+
+%include "src/bootstrap.s"

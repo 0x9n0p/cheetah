@@ -1,2 +1,3 @@
 break *0x7c00
 break *0x7e00
+break *0x100000
