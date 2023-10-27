@@ -2,11 +2,11 @@ bootloader:
 	nasm -f bin -o build/bootloader.bin src/bootloader.s
 
 debug: bootloader
-	qemu-system-x86_64 -m 1024 build/bootloader.bin -S -s &
+	qemu-system-x86_64 -m 2048 build/bootloader.bin -S -s &
 	gdb build/bootloader.elf -ex 'source .breakpoints' -ex 'target remote localhost:1234'
 
 run: bootloader
-	qemu-system-x86_64 -m 1024 build/bootloader.bin
+	qemu-system-x86_64 -m 2048 build/bootloader.bin
 
 debug-rm: bootloader
 	qemu-system-i386  build/bootloader.bin -s -S &

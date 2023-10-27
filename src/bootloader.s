@@ -1,6 +1,5 @@
 [BITS 16]
 [ORG 0x7c00]
-
 boot_sector:
     xor ax, ax
     mov ds, ax
@@ -61,8 +60,16 @@ dw 0xAA55
 CODE_SEG equ CODE32 - GDT32
 DATA_SEG equ DATA32 - GDT32
 
+[BITS 16]
 loader:
-    cli
+    xor ax, ax
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ss, ax
+    mov sp, 0x7c00
+
     lgdt [GDT32_PTR]
     lidt [IDT32_PTR]
 
@@ -70,35 +77,79 @@ loader:
     or eax, 1
     mov cr0, eax
 
-    ; 8 = 00001 (Index) 0 (TI) 00 (RPL)
     jmp CODE_SEG:protected_mode
 
 [BITS 32]
 protected_mode:
-    mov eax, DATA_SEG ; 16 -> Data segment is third entry
-    mov ds, ax
-    mov es, ax
-    mov ss, ax
-    mov esp, 0x7C00
+      cli
 
-    mov BYTE[0xb8000], 'P'
-    mov BYTE[0xb8001], 0xa
+      mov ax, DATA_SEG
+      mov ds, ax
+      mov es, ax
+      mov ss, ax
+      mov esp, 0x7c00
 
-    hlt
-    jmp $
+      ; Load kernel at 0x9000
+      mov eax, 9 ; From sector n
+      mov ecx, 8 ; n Sectors to read
+      mov edi, 0x9000 ; The address
+      call ata_lba_read
+
+      ; Enable the A20 line
+      in al, 0x92
+      or al, 2
+      out 0x92, al
+
+      ; Use 0x70000 to 0x80000 for paging
+      cld
+      mov edi, 0x70000
+      xor eax, eax
+      mov ecx, 0x10000/4
+      rep stosd
+
+      ; PML4 Entry
+      mov dword[0x70000], 0x71003 ; U=0 W=1 P=1
+      ; PDP Entry
+      ; 1G physical page, Base Address = 0
+      mov dword[0x71000], 10000111b
+
+      ; Higher-half kernel
+      mov eax, (0xffff800000000000>>39) ; Clear other bits
+      and eax, 0x1ff ; 9-bit index value, index 1
+      mov dword[0x70000+eax*8], 0x72003
+      mov dword[0x72000], 10000011b
+
+      lgdt [GDT64_PTR]
+
+      ; Physical address extension
+      mov eax, cr4
+      or eax, (1<<5)
+      mov cr4, eax
+
+      mov eax, 0x70000
+      mov cr3, eax
+
+      mov ecx, 0xc0000080
+      rdmsr
+      or eax, (1<<8)
+      wrmsr
+
+      mov eax, cr0
+      or eax, (1<<31)
+      mov cr0, eax
+
+      ; Segment Selector (00001 (Index) 000 (Attributes)) + Offset
+      jmp 8:long_mode
 
 GDT32:
-    ; The first entry must be null
-    dq 0 ; each entry is 8 bytes, dq to allocate 8 bytes space
-
+      dq 0
 CODE32:
-      dw 0xffff ; Limit
-      dw 0      ; Base address
-      db 0      ; Base address
-      db 0x9a   ; 1 (P) 00 (DPL) 1 (System descriptor) 1010 (Non-confirming code segment)
-      db 0xcf   ; 1 (G) 1 (D) 0 0 (A)  1111 (Limit)
-      db 0      ; Base address
-
+      dw 0xffff
+      dw 0
+      db 0
+      db 0x9a
+      db 0xcf
+      db 0
 DATA32:
       dw 0xffff
       dw 0
@@ -117,4 +168,79 @@ IDT32_PTR:
       dw 0
       dw 0
 
-times 4096 db 0
+ata_lba_read:
+    mov ebx, eax
+    shr eax, 24
+    or eax, 0xE0
+    mov dx, 0x1F6
+    out dx, al
+
+    mov eax, ecx
+    mov dx, 0x1F2
+    out dx, al
+
+    mov eax, ebx
+    mov dx, 0x1F3
+    out dx, al
+
+    mov dx, 0x1F4
+    mov eax, ebx
+    shr eax, 8
+    out dx, al
+
+    mov dx, 0x1F5
+    mov eax, ebx
+    shr eax, 16
+    out dx, al
+
+    mov dx, 0x1f7
+    mov al, 0x20
+    out dx, al
+
+.next_sector:
+    push ecx
+
+.try_again:
+    mov dx, 0x1f7
+    in al, dx
+    test al, 8
+    jz .try_again
+
+    mov ecx, 256
+    mov dx, 0x1F0
+    rep insw
+    pop ecx
+    loop .next_sector
+    ret
+
+[BITS 64]
+long_mode:
+      xor ax, ax
+      mov ss, ax
+      mov rsp, 0xffff800000060000
+
+      mov rax, 0xffff800000009000
+      jmp rax
+
+GDT64:
+      dq 0
+      ; D=0  L=1  P=1  DPL=0  1  1  C=0
+      dq 0x0020980000000000
+
+GDT64_LEN: equ $-GDT64
+
+GDT64_PTR:
+      dw GDT64_LEN - 1
+      dd GDT64
+
+times 4096-($-loader) db 0x90
+
+[BITS 64]
+kernel:
+    mov BYTE[0xb8000], 'K'
+    mov BYTE[0xb8001], 0xa
+
+    hlt
+    jmp $
+
+times 4096-($-kernel) db 0x90
