@@ -1,5 +1,7 @@
 # Cheetah
 The simplest way to implement a 64-bit kernel.
+#### Build & Run
+Install [x86_64-elf-gcc](https://aur.archlinux.org/packages/x86_64-elf-gcc) and [qemu-system-x86_64](https://archlinux.org/packages/extra/x86_64/qemu-system-x86/), then run ```make run```
 
 ## Initialization Process
 
