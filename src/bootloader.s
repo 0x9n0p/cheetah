@@ -234,5 +234,3 @@ GDT64_PTR:
       dd GDT64
 
 times 4096-($-loader) db 0x90
-
-%include "src/kernel.s"
