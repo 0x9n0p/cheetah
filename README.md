@@ -7,7 +7,7 @@ Install [x86_64-elf-gcc](https://aur.archlinux.org/packages/x86_64-elf-gcc) and 
 
 ### Bootloader
 
-We use a simple assembly-written bootloader, but you can customize Cheetah to support other bootloaders, such as GRUB2.
+We use a simple assembly-written bootloader, but you can customize Cheetah to support other bootloaders, such as [GRUB2](https://www.gnu.org/software/grub).
 
 1. During the boot process, the Basic Input/Output System (BIOS) loads the first sector of the bootable disk into the memory address 0x7C00.
 2. This sector loads the following eight sectors (The loader) into 0x7E00 and jumps to the starting address.
