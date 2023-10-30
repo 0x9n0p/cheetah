@@ -1,0 +1,3 @@
+[submodule "lib/allocator"]
+	path = lib/allocator
+	url = https://github.com/heapz/allocator.git
