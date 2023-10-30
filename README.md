@@ -13,6 +13,10 @@ We use a simple assembly-written bootloader, but you can customize Cheetah to su
 2. This sector loads the following eight sectors (The loader) into 0x7E00 and jumps to the starting address.
 3. The loader (Bootstrap) sets up a basic protected mode environment. Once in protected mode, we use ATA to load the 64-bit kernel, consisting of eight sectors. The bootstrap is responsible for setting up paging and other requirements to enable long mode, allowing us to jump to the kernel's 64-bit entry point.
 
+### Higher Half Kernel
+It is traditional and generally good to have your kernel mapped in every user process. Linux and many other Unices, for instance, reside at virtual addresses 0xC0000000 – 0xFFFFFFFF of every address space, leaving the range 0x00000000 – 0xBFFFFFFF for user code, data, stacks, libraries, etc. Kernels that have such design are said to be "in the higher half" by opposition to kernels that use lowest virtual addresses for themselves, and leave higher addresses for the applications. [Source](https://wiki.osdev.org/Higher_Half_Kernel) <br>
+[We removed the higher half kernel mapping](https://github.com/0x9n0p/cheetah/commit/649db4806b85dcd5a5f95b8e8e34c13e6e8fdc48) on Cheetah since we only have one program running.
+
 ## Memory Management
 ### Global Descriptor Table (GDT)
 The Global Descriptor Table (GDT) is a binary data structure specific to the IA-32 and x86-64 architectures. It contains entries telling the CPU about memory segments. [Source](https://wiki.osdev.org/Global_Descriptor_Table) <br>
