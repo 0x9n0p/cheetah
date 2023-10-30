@@ -95,6 +95,12 @@ protected_mode:
       mov edi, 0x9000 ; The address
       call ata_lba_read
 
+      ; Load kernel at 0x100000
+      mov eax, 17 ; From sector n
+      mov ecx, 8 ; n Sectors to read
+      mov edi, 0x100000 ; The address
+      call ata_lba_read
+
       ; Enable the A20 line
       in al, 0x92
       or al, 2
@@ -213,7 +219,11 @@ long_mode:
       mov ss, ax
       ; mov rsp, 0x7c00
 
-      jmp 0x9000
+      ; Jump to 0x9000
+      push 8
+      push 0x9000
+      db 0x48
+      retf
 
 GDT64:
       dq 0
