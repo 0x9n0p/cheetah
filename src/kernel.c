@@ -5,6 +5,14 @@ void _start(void) {
     char str[] = "Cheetah Kernel";
     print(str, sizeof(str));
 
+#if PROGRAM
+    __asm__ (
+        "push $0x8\n"
+        "push $0x100000\n"
+        "lretq\n"
+    );
+#endif
+
     __asm__ __volatile__ ("hlt");
 }
 
