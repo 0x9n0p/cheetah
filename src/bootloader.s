@@ -113,12 +113,6 @@ protected_mode:
       ; 1G physical page, Base Address = 0
       mov dword[0x71000], 10000111b
 
-      ; Higher-half kernel
-      mov eax, (0xffff800000000000>>39) ; Clear other bits
-      and eax, 0x1ff ; 9-bit index value, index 1
-      mov dword[0x70000+eax*8], 0x72003
-      mov dword[0x72000], 10000011b
-
       lgdt [GDT64_PTR]
 
       ; Physical address extension
@@ -217,10 +211,9 @@ ata_lba_read:
 long_mode:
       xor ax, ax
       mov ss, ax
-      mov rsp, 0xffff800000060000
+      ; mov rsp, 0x7c00
 
-      mov rax, 0xffff800000009000
-      jmp rax
+      jmp 0x9000
 
 GDT64:
       dq 0
