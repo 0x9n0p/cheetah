@@ -7,7 +7,7 @@ Install [x86_64-elf-gcc](https://aur.archlinux.org/packages/x86_64-elf-gcc) and 
 ### How to run programs?
 Cheetah can load and execute one program. This program must be located in sector 17. [It will be loaded at memory address 0x100000](https://github.com/0x9n0p/cheetah/blob/dev/src/bootloader.s#L98) during the boot process and [executed](https://github.com/0x9n0p/cheetah/blob/dev/src/kernel.c#L8) if [the PROGRAM macro](https://github.com/0x9n0p/cheetah/blob/dev/Makefile#L1) is 1.
 
-#### For example, to run [assembly hello-world](https://github.com/0x9n0p/cheetah/tree/dev/examples/assembly/hello-world):
+#### For example, to run [assembly hello-world](https://github.com/0x9n0p/cheetah/tree/dev/examples/assembly/hello-world)
 1. Build Cheetah ```make clean image```
 2. Build program and insert it to sector 17 ```(cd examples/assembly/hello-world && make)```
 3. Run the image ```make run```
